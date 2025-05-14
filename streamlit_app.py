@@ -1,50 +1,130 @@
 import streamlit as st
-import requests
+from huggingface_hub import InferenceClient
 
-# Streamlit page settings
-st.set_page_config(page_title="PalmPal Chatbot", layout="wide")
-st.title("🌴 PalmPal Chatbot")
-st.markdown("Your Personalised Assistant for Palm Plantation Owners")
+# Streamlit page configuration
+st.set_page_config(page_title="Chatbot with Hugging Face", page_icon=":robot_face:", layout="wide")
+st.title("Hugging Face Chatbot")
+st.subheader("Powered by Llama-3.2-3B-Instruct")
 
-# Sidebar settings
-with st.sidebar:
-    st.header("Model Settings")
-    selected_model = st.selectbox(
-        "Choose LLaMA 3.2 Vision Model:",
-        options=["llama3.2-vision:11b", "llama3.2-vision:90b"],
-        index=0
-    )
-    st.info("💡 Tip: Use 11B for general queries. 90B is more powerful but needs more memory.")
+# Initialize session state variables
+if 'messages' not in st.session_state:
+    st.session_state.messages = []
 
-# Initialize chat history
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+if 'display_full_history' not in st.session_state:
+    st.session_state.display_full_history = True
 
-# User input
-user_input = st.text_input("💬 Ask PalmPal something (e.g., crop health tips, fertilizer suggestions):")
+# Set up the InferenceClient to access the Hugging Face model
+client = InferenceClient(
+    api_key="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"  # Your Hugging Face API token
+)
 
-# Chat response
-if user_input:
-    st.session_state.chat_history.append({"role": "user", "content": user_input})
-    with st.spinner("🧠 PalmPal is thinking..."):
+# Function to generate a response using the Hugging Face model
+def generate_response(user_input):
+    # If we have previous messages, include them in the conversation
+    messages = []
+    
+    # Add previous messages from history (limit to last 10 for context window reasons)
+    for msg in st.session_state.messages[-10:]:
+        role = "user" if msg["role"] == "user" else "assistant"
+        messages.append({"role": role, "content": msg["content"]})
+    
+    # Add the new user message
+    messages.append({"role": "user", "content": user_input})
+    
+    # Show a spinner while waiting for the model response
+    with st.spinner("Thinking..."):
         try:
-            response = requests.post(
-                "http://localhost:11434/api/chat",
-                json={
-                    "model": selected_model,
-                    "messages": st.session_state.chat_history
-                }
+            # Use the chat_completion method with correct parameters
+            response = client.chat_completion(
+                model="meta-llama/Llama-3.2-3B-Instruct",
+                messages=messages,
+                temperature=0.7,
+                max_tokens=500,  # Increased for longer responses
+                top_p=0.9
             )
-            response.raise_for_status()
-            bot_reply = response.json()["message"]["content"]
-            st.session_state.chat_history.append({"role": "assistant", "content": bot_reply})
+            
+            # Extract and return the assistant's message
+            return response.choices[0].message.content
         except Exception as e:
             st.error(f"Error: {str(e)}")
+            return f"I'm sorry, I encountered an error: {str(e)}"
 
-# Display chat
-st.subheader("🗨️ Chat History")
-for message in st.session_state.chat_history:
-    if message["role"] == "user":
-        st.markdown(f"**👤 You:** {message['content']}")
+# Create the sidebar with information and examples
+st.sidebar.header("About this Chatbot")
+st.sidebar.markdown("""
+This chatbot uses Meta's Llama-3.2-3B-Instruct model via Hugging Face's Inference API.
+
+You can ask it questions, request information, or just chat with it.
+""")
+
+# Add a few example prompts to help users get started
+st.sidebar.header("Example Prompts")
+example_prompts = [
+    "How to make a cake?",
+    "Explain quantum computing in simple terms",
+    "Write a short poem about nature",
+    "What are the benefits of regular exercise?",
+    "Tell me an interesting fact about space"
+]
+
+for i, prompt in enumerate(example_prompts):
+    button_key = f"example_prompt_{i}"
+    if st.sidebar.button(prompt, key=button_key):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        bot_response = generate_response(prompt)
+        st.session_state.messages.append({"role": "assistant", "content": bot_response})
+        st.rerun()
+
+# Add sidebar toggle for full conversation history display
+st.sidebar.markdown("---")
+st.sidebar.header("Settings")
+st.session_state.display_full_history = st.sidebar.checkbox(
+    "Show full conversation history", 
+    value=st.session_state.display_full_history
+)
+
+# Add a button to clear chat history
+if st.sidebar.button("Clear Chat History", key="clear_history"):
+    st.session_state.messages = []
+    st.rerun()
+
+# Create a chat interface in the main area
+st.markdown("### Chat")
+
+# Display the chat history
+chat_container = st.container()
+with chat_container:
+    if st.session_state.display_full_history:
+        messages_to_display = st.session_state.messages
     else:
-        st.markdown(f"**🤖 PalmPal:** {message['content']}")
+        # Display only the last 6 messages if history is toggled off
+        messages_to_display = st.session_state.messages[-6:] if len(st.session_state.messages) > 6 else st.session_state.messages
+    
+    for msg in messages_to_display:
+        if msg["role"] == "user":
+            st.markdown(f"**You:** {msg['content']}")
+        else:
+            st.markdown(f"**Bot:** {msg['content']}")
+
+# Function to process user input
+def process_user_input():
+    if st.session_state.user_input:
+        user_message = st.session_state.user_input
+        
+        # Store the user input in the chat history
+        st.session_state.messages.append({"role": "user", "content": user_message})
+        
+        # Generate a response from the model
+        bot_response = generate_response(user_message)
+        
+        # Store the model's response in the chat history
+        st.session_state.messages.append({"role": "assistant", "content": bot_response})
+        
+        # Clear the input by setting an empty string in session_state
+        st.session_state.user_input = ""
+
+# Chat input area
+user_input = st.text_input("Type your message:", key="user_input", on_change=process_user_input)
+
+# Add a send button (optional, since pressing Enter also submits the form)
+st.button("Send", on_click=process_user_input)
