@@ -1,6 +1,9 @@
 import streamlit as st
 from huggingface_hub import InferenceClient
 
+api_key = st.secrets["HUGGINGFACE_API_KEY"]
+client = InferenceClient(api_key=api_key)
+
 # --- Page Configuration ---
 st.set_page_config(page_title="PalmPal", page_icon="🌴", layout="centered")
 
@@ -60,8 +63,8 @@ st.markdown(t['subtitle'])
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
-# --- Hugging Face API Client ---
-client = InferenceClient(api_key="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")
+# # --- Hugging Face API Client ---
+# client = InferenceClient(api_key="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")
 
 # --- Generate Bot Response ---
 def generate_response(user_input):
