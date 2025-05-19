@@ -2278,63 +2278,62 @@ st.markdown("""
         --sawit-dark-green: #3A4A1F;
     }
     
-    /* EXTREME space reduction for Streamlit containers */
+    /* Reduce space but not as extreme as before */
     .block-container {
-        padding-top: 0rem !important;
+        padding-top: 1rem !important;
         padding-bottom: 0rem !important;
-        margin-top: -6rem !important;
+        margin-top: -2rem !important;
     }
     
     /* Further reduce space in the main area */
     .main .block-container {
-        padding: 0rem !important; 
+        padding: 1rem !important; 
         max-width: 100% !important;
     }
     
-    /* Remove all empty spaces and gaps */
+    /* Reduce spaces and gaps - but leave some breathing room */
     .css-1y4p8pa {
-        margin-top: -4rem !important;
-        padding-top: 0rem !important;
+        margin-top: -1rem !important;
+        padding-top: 0.5rem !important;
         padding-bottom: 0rem !important;
     }
     
-    /* Remove space above the chat messages */
+    /* Reduce space above the chat messages */
     .css-1544g2n {
-        padding-top: 0 !important;
+        padding-top: 0.5rem !important;
         margin-top: 0 !important;
     }
     
-    /* Remove any extra margins around elements */
+    /* Reduce any extra margins around elements */
     .element-container, .stMarkdown, .stButton, .stImage {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
+        margin-top: 0.2rem !important;
+        margin-bottom: 0.2rem !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
     }
     
     /* Reduce space around image */
     img {
-        margin: 0 !important;
-        padding: 0 !important;
+        margin-bottom: 0.5rem !important;
     }
     
-    /* Compress title and subtitle */
+    /* Keep more breathing room in title and subtitle */
     h2 {
-        margin: 0 !important;
-        padding: 0 !important;
-        line-height: 1.2 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0.2rem !important;
+        padding-top: 0 !important;
     }
     
     p {
-        margin: 0 !important;
+        margin-bottom: 0.5rem !important;
         padding: 0 !important;
         line-height: 1.2 !important;
     }
     
-    /* Chat bubbles with icons - compressed */
+    /* Chat bubbles with icons - slightly more room */
     .chat-container {
         display: flex;
-        margin-bottom: 5px !important;
+        margin-bottom: 8px !important;
         max-width: 100%;
         clear: both;
     }
@@ -2386,29 +2385,41 @@ st.markdown("""
         border-top-left-radius: 4px;
     }
     
-    /* Extremely compact example prompts */
+    /* Restore SawitPRO brand colors for example prompts */
     .example-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        grid-gap: 5px;
-        margin-bottom: 5px;
+        grid-gap: 8px;
+        margin-bottom: 8px;
     }
     
     .example-grid button {
         width: 100%;
         height: 100%;
-        padding: 5px;
+        padding: 8px;
         background-color: var(--sawit-green) !important;
         color: white !important;
-        font-size: 0.9em !important;
+        font-size: 0.95em !important;
     }
     
-    /* Example section header - minimal */
+    /* Example section header */
     .example-header {
-        margin-bottom: 3px;
+        margin-bottom: 5px;
         color: var(--sawit-green);
         font-weight: bold;
-        font-size: 0.9em;
+    }
+    
+    /* Language toggle button styling */
+    .lang-toggle {
+        display: inline-block;
+        margin-bottom: 8px;
+    }
+    
+    .lang-toggle button {
+        background-color: var(--sawit-green) !important;
+        color: white !important;
+        border: none !important;
+        font-size: 0.9em !important;
     }
     
     /* Align send button */
@@ -2421,55 +2432,44 @@ st.markdown("""
         color: var(--sawit-green);
     }
     
-    /* Add padding to push everything up and fix the gap */
+    /* Add moderate padding to gently push things up */
     .filler {
         height: 1px;
-        margin-top: -300px !important;
+        margin-top: -150px !important;
     }
     
-    /* Hide unnecessary elements */
-    footer, header {
+    /* Hide footer but keep header */
+    footer {
         display: none !important;
     }
     
-    /* Force vertical compression */
-    .stApp {
-        height: auto !important;
-        min-height: 0 !important;
-    }
-    
-    /* Remove whitespace from textfields */
+    /* Make textfields look better */
     .stTextInput > div {
         margin-top: 0 !important;
-        margin-bottom: 0 !important;
+        margin-bottom: 8px !important;
     }
     
-    /* Custom styling for the sticky footer */
-    .footer-container {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        padding: 10px;
-        border-top: 1px solid #eee;
-        z-index: 1000;
+    /* Custom styling for buttons */
+    div.stButton > button {
+        background-color: var(--sawit-green);
+        color: white;
+        border: none;
+    }
+    
+    div.stButton > button:hover {
+        background-color: var(--sawit-dark-green);
+        color: white;
+        border: none;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- Add a filler div to push everything up ---
+# --- Add a filler div to push things up but not too aggressively ---
 st.markdown('<div class="filler"></div>', unsafe_allow_html=True)
 
 # --- Language Selection ---
 if "language" not in st.session_state:
     st.session_state.language = "id"  # Default: Bahasa Indonesia
-
-# --- Language Toggle Button (smaller and less space) ---
-lang_toggle = st.button("🌐" if st.session_state.language == "id" else "🌐")
-if lang_toggle:
-    st.session_state.language = "en" if st.session_state.language == "id" else "id"
-    st.rerun()
 
 # --- Text Translations ---
 TEXT = {
@@ -2477,35 +2477,45 @@ TEXT = {
         "title": "🌴 PalmPal – Teman Berkebun Kamu",
         "subtitle": "*Tanya soal sawit, kapan saja, di mana saja.*",
         "input_placeholder": "Tulis pertanyaanmu di sini (contoh: Kenapa daun sawit saya kuning?)",
-        "send_button": "📨",
+        "send_button": "📨 Kirim",
         "examples": "Contoh Pertanyaan:",
-        "advanced": "⚙️",
-        "clear_chat": "🧹",
-        "model_info": "Model: Llama-3.2-3B-Instruct",
-        "footer": "© 2025 SawitPRO",
-        "thinking": "...",
+        "advanced": "⚙️ Pengaturan Lanjutan",
+        "clear_chat": "🧹 Bersihkan Riwayat Chat",
+        "model_info": "Model: `meta-llama/Llama-3.2-3B-Instruct` via HuggingFace API",
+        "footer": "© 2025 SawitPRO – Didukung oleh AI & Llama3 💡",
+        "thinking": "PalmPal sedang berpikir...",
         "user": "Kamu",
         "bot": "PalmPal",
-        "error": "Maaf, terjadi kesalahan."
+        "error": "Maaf, PalmPal mengalami gangguan.",
+        "lang_toggle": "🌐 Switch to English"
     },
     "en": {
         "title": "🌴 PalmPal – Your Farming Friend",
         "subtitle": "*Ask anything about palm oil, anytime, anywhere.*",
         "input_placeholder": "Type your question here (e.g. Why are my palm leaves yellow?)",
-        "send_button": "📨",
+        "send_button": "📨 Send",
         "examples": "Example Questions:",
-        "advanced": "⚙️",
-        "clear_chat": "🧹",
-        "model_info": "Model: Llama-3.2-3B-Instruct",
-        "footer": "© 2025 SawitPRO",
-        "thinking": "...",
+        "advanced": "⚙️ Advanced Settings",
+        "clear_chat": "🧹 Clear Chat History",
+        "model_info": "Model: `meta-llama/Llama-3.2-3B-Instruct` via HuggingFace API",
+        "footer": "© 2025 SawitPRO – Powered by AI & Llama3 💡",
+        "thinking": "PalmPal is thinking...",
         "user": "You",
         "bot": "PalmPal",
-        "error": "Sorry, an error occurred."
+        "error": "Sorry, PalmPal encountered an error.",
+        "lang_toggle": "🌐 Ganti ke Bahasa Indonesia"
     }
 }
 lang = st.session_state.language
 t = TEXT[lang]
+
+# --- Restored Language Toggle Button ---
+st.markdown('<div class="lang-toggle">', unsafe_allow_html=True)
+lang_toggle = st.button(t["lang_toggle"])
+if lang_toggle:
+    st.session_state.language = "en" if st.session_state.language == "id" else "id"
+    st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Only use one st.image with smaller dimensions ---
 st.image("https://static.wixstatic.com/media/759737_bb3e5ad0e411479782bdaca6f4fa3bda~mv2.png/v1/fit/w_2500,h_1330,al_c/759737_bb3e5ad0e411479782bdaca6f4fa3bda~mv2.png", width=120)
@@ -2535,10 +2545,10 @@ def generate_response(user_input):
             )
             return response.choices[0].message.content
         except Exception as e:
+            st.error(f"{t['error']}: {str(e)}")
             return t['error']
 
-# --- Display Chat Bubbles (Super Compact) ---
-# Display chat messages with user/bot icons
+# --- Display Chat Bubbles ---
 for msg in st.session_state.messages[-10:]:
     if msg["role"] == "user":
         st.markdown(f"""
@@ -2555,7 +2565,7 @@ for msg in st.session_state.messages[-10:]:
         </div>
         """, unsafe_allow_html=True)
 
-# --- Example Prompts RIGHT ABOVE INPUT (Very Compact) ---
+# --- Example Prompts RIGHT ABOVE INPUT ---
 st.markdown(f'<p class="example-header">{t["examples"]}</p>', unsafe_allow_html=True)
 
 example_prompts = {
@@ -2593,7 +2603,7 @@ def process_user_input():
         st.session_state.user_input = ""  # Clear input field
 
 # Input area with better alignment
-col1, col2 = st.columns([5, 1])
+col1, col2 = st.columns([4, 1])
 with col1:
     st.text_input(t["input_placeholder"], key="user_input", on_change=process_user_input)
 with col2:
@@ -2601,11 +2611,9 @@ with col2:
     st.button(t["send_button"], on_click=process_user_input)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- Add minimal advanced options ---
-with st.expander(""):
+# --- Optional Advanced Section ---
+with st.expander(t["advanced"]):
     if st.button(t["clear_chat"]):
         st.session_state.messages = []
         st.rerun()
-
-# --- Small Footer ---
-st.markdown(f"<p style='text-align:center; font-size:0.8em; color:#666;'>{t['footer']}</p>", unsafe_allow_html=True)
+    st.markdown(t["model_info"])
