@@ -331,22 +331,6 @@ with chat_container:
     
     # Add clearfix to ensure container expands properly
     st.markdown('<div class="clearfix"></div>', unsafe_allow_html=True)
-
-# --- User Input ---
-def process_user_input():
-    if st.session_state.user_input:
-        user_message = st.session_state.user_input
-        st.session_state.messages.append({"role": "user", "content": user_message})
-        bot_response = generate_response(user_message)
-        st.session_state.messages.append({"role": "assistant", "content": bot_response})
-        st.session_state.user_input = ""
-
-input_col, button_col = st.columns([4, 1])
-with input_col:
-    st.text_input(t["input_placeholder"], key="user_input", on_change=process_user_input)
-with button_col:
-    st.button(t["send_button"], on_click=process_user_input)
-
 # --- Example Prompts ---
 st.markdown(t["examples"])
 cols = st.columns(2)
@@ -370,6 +354,22 @@ for i, prompt in enumerate(example_prompts[lang]):
         bot_response = generate_response(prompt)
         st.session_state.messages.append({"role": "assistant", "content": bot_response})
         st.rerun()
+
+# --- User Input ---
+def process_user_input():
+    if st.session_state.user_input:
+        user_message = st.session_state.user_input
+        st.session_state.messages.append({"role": "user", "content": user_message})
+        bot_response = generate_response(user_message)
+        st.session_state.messages.append({"role": "assistant", "content": bot_response})
+        st.session_state.user_input = ""
+
+input_col, button_col = st.columns([4, 1])
+with input_col:
+    st.text_input(t["input_placeholder"], key="user_input", on_change=process_user_input)
+with button_col:
+    st.button(t["send_button"], on_click=process_user_input)
+
 
 # --- Optional Advanced Section ---
 with st.expander(t["advanced"]):
