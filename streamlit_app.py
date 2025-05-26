@@ -3924,7 +3924,7 @@ TEXT = {
         "lang_toggle": "🌐 Switch to English"
     },
     "en": {
-        "title": "🌴 PalmPal – You Farming Friend",
+        "title": "🌴 PalmPal – Your Farming Friend",
         "subtitle": "*Ask anything about palm oil, anytime, anywhere.*",
         "input_placeholder": "Type your question here (e.g. Why are my palm leaves yellow?)",
         "send_button": "📨 Send",
