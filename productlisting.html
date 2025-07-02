@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Product Catalog{% endblock %}
+
+{% block content %}
+<section class="product-hero">
+    <div class="hero-content">
+        <h1 class="product-catalog-title">Product Catalog</h1>
+        <p class="product-catalog-description">Discover premium palm oil plantation supplies and expert agricultural solutions</p>
+    </div>
+</section>
+
+<section class="products-catalog">
+    <div class="container">
+        <div class="products-header">
+            <h2>{{ products|length }} Products Found</h2>
+        </div>
+
+        <div class="filters-section">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label for="categoryFilter">Category:</label>
+                    <select id="categoryFilter" onchange="filterProducts()">
+                        <option value="">All Categories</option>
+                        {% for category in products|map(attribute='category')|unique|sort %}
+                            <option value="{{ category }}">{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="weatherFilter">Weather Type:</label>
+                    <select id="weatherFilter" onchange="filterProducts()">
+                        <option value="">All Weather Types</option>
+                        {% for weather in products|map(attribute='suitable_weather')|unique|sort %}
+                            <option value="{{ weather }}">{{ weather }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="searchFilter">Search:</label>
+                    <input type="text" id="searchFilter" placeholder="Search products..." oninput="filterProducts()">
+                </div>
+                <div class="filter-group">
+                    <label for="sortFilter">Sort by Price:</label>
+                    <select id="sortFilter" onchange="sortProducts()">
+                        <option value="none">None</option>
+                        <option value="asc">Low to High</option>
+                        <option value="desc">High to Low</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="products-grid" id="productsContainer">
+            {% for product in products %}
+            <div class="product-listing-card" data-category="{{ product.category }}" data-weather="{{ product.suitable_weather }}" data-price="{{ product.price }}">
+                <div class="product-image-container">
+                    <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" class="product-image">
+                </div>
+                <div class="product-info">
+                    <div class="product-category">{{ product.product_type }}</div>
+                    <h3 class="product-name">{{ product.product_name_en }}</h3>
+                    <div class="price-section">
+                        <span class="price">Rp {{ "{:,.2f}".format(product.price) }}</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-primary" onclick="addToCart('{{ product.product_id }}')">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function filterProducts() {
+        const category = document.getElementById('categoryFilter').value;
+        const weather = document.getElementById('weatherFilter').value;
+        const searchTerm = document.getElementById('searchFilter').value.toLowerCase();
+
+        const products = document.querySelectorAll('.product-listing-card');
+
+        products.forEach(product => {
+            const productCategory = product.getAttribute('data-category');
+            const productWeather = product.getAttribute('data-weather');
+            const productName = product.querySelector('.product-name').textContent.toLowerCase();
+
+            const matchesCategory = !category || productCategory === category;
+            const matchesWeather = !weather || productWeather === weather;
+            const matchesSearch = productName.includes(searchTerm);
+
+            if (matchesCategory && matchesWeather && matchesSearch) {
+                product.style.display = '';
+            } else {
+                product.style.display = 'none';
+            }
+        });
+    }
+
+    function sortProducts() {
+        const sortValue = document.getElementById('sortFilter').value;
+        const productsContainer = document.getElementById('productsContainer');
+        const products = Array.from(productsContainer.querySelectorAll('.product-listing-card'));
+
+        products.sort((a, b) => {
+            const priceA = parseFloat(a.getAttribute('data-price'));
+            const priceB = parseFloat(b.getAttribute('data-price'));
+
+            if (sortValue === 'asc') {
+                return priceA - priceB;
+            } else if (sortValue === 'desc') {
+                return priceB - priceA;
+            } else {
+                return 0;
+            }
+        });
+
+        // Clear the container
+        productsContainer.innerHTML = '';
+
+        // Re-add the sorted products
+        products.forEach(product => {
+            productsContainer.appendChild(product);
+        });
+    }
+
+    function addToCart(productId) {
+        fetch('/add_to_cart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                quantity: 1
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Product added to cart!');
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while adding the product to the cart');
+        });
+    }
+</script>
+{% endblock %}
