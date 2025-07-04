@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero" id="home">
+    <div class="hero-content">
+        <h1>Welcome to PetaniCerdas</h1>
+        <p>Your one-stop solution for palm oil plantation supplies and expert agricultural guidance</p>
+        <a href="{{ url_for('product_listing') }}" class="cta-button">Shop Now</a>
+    </div>
+</section>
+
+
+<!-- Promotions Section -->
+<section class="promotions">
+    <div class="container">
+        <h2 class="section-title">Special Offers</h2>
+        <div class="promo-grid">
+            <div class="promo-card">
+                <img src="{{ url_for('static', filename='images/promo1.png') }}" alt="Promotion 1">
+                <h3>Bundle Sale</h3>
+                <p>Check out the Special Bundle Sale! ></p>
+            </div>
+            <div class="promo-card">
+                <img src="{{ url_for('static', filename='images/promo2.jpg') }}" alt="Promotion 2">
+                <h3>New Arrivals</h3>
+                <p>Check out our latest products</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Categories Section -->
+<section class="featured-categories">
+    <div class="container">
+        <h2 class="section-title">Featured Categories</h2>
+        <div class="categories-grid">
+            <div class="category-card">
+                <div class="category-icon">🌱</div>
+                <h3>Seeds & Seedlings</h3>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">💧</div>
+                <h3>Fertilizers & Nutrients</h3>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">🛡️</div>
+                <h3>Pesticides & Protection</h3>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">🔧</div>
+                <h3>Tools & Equipment</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products Section -->
+<section class="featured-products" id="featured-products">
+    <div class="container">
+        <h2 class="section-title">Featured Products</h2>
+        <div class="products-grid">
+            <!-- Example product cards -->
+            <div class="product-card">
+                <img src="{{ url_for('static', filename='images/product1.jpg') }}" alt="Product 1">
+                <h3>Premium Palm Seeds</h3>
+                <p>High-quality seeds for optimal growth</p>
+                <div class="price">$19.99</div>
+                <button class="add-to-cart-btn">Add to Cart</button>
+            </div>
+            <div class="product-card">
+                <img src="{{ url_for('static', filename='images/product2.jpg') }}" alt="Product 2">
+                <h3>Organic Fertilizer</h3>
+                <p>Enhance your plantation's yield</p>
+                <div class="price">$29.99</div>
+                <button class="add-to-cart-btn">Add to Cart</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Chatbot Toggle Button -->
+<button class="chatbot-toggle" id="chatbotToggleButton" onclick="toggleChat()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+</button>
+
+<!-- Chatbot Popup Container -->
+<div class="chatbot-container" id="chatbotContainer">
+    <div class="chatbot-header">
+        <div class="chatbot-title">
+            <span>🌴</span>
+            <span>Chat with PalmPal</span>
+        </div>
+        <div class="chatbot-controls">
+            <button class="chatbot-control-btn" onclick="toggleFullscreen()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                </svg>
+            </button>
+            <button class="chatbot-control-btn" onclick="closeChat()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div class="chatbot-messages" id="chatbotMessages">
+        <div class="message bot">
+            <div class="message-content">
+                Hello! I'm your AI palm plantation assistant, PalmPal. How can I help you with your plantation today?
+            </div>
+            <div class="sample-prompts">
+                <button class="sample-prompt" onclick="useSamplePrompt(this)">What's the best fertilizer for mature palm trees?</button>
+                <button class="sample-prompt" onclick="useSamplePrompt(this)">How to control pest infestations?</button>
+                <button class="sample-prompt" onclick="useSamplePrompt(this)">Recommend products for soil improvement</button>
+                <button class="sample-prompt" onclick="useSamplePrompt(this)">Best harvesting practices for maximum yield</button>
+            </div>
+        </div>
+    </div>
+    <div class="typing-indicator" id="typingIndicator">
+        <span>Assistant is typing</span>
+        <div class="typing-dots">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+    </div>
+    <div class="chatbot-input">
+        <input type="text" id="chatbotInput" placeholder="Ask about palm plantation..." onkeypress="handleChatInput(event)">
+        <button class="send-btn" onclick="sendChatMessage()">Send</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let chatOpen = false;
+    let isFullscreen = false;
+
+    function toggleChat() {
+        const chatbot = document.getElementById('chatbotContainer');
+        const toggleButton = document.getElementById('chatbotToggleButton');
+        chatOpen = !chatOpen;
+
+        if (chatOpen) {
+            chatbot.style.display = 'flex';
+            toggleButton.style.display = 'none';
+            document.getElementById('chatbotInput').focus();
+        }
+    }
+
+    function closeChat() {
+        const chatbot = document.getElementById('chatbotContainer');
+        const toggleButton = document.getElementById('chatbotToggleButton');
+        chatbot.style.display = 'none';
+        toggleButton.style.display = 'flex';
+    }
+
+    function toggleFullscreen() {
+        const chatbot = document.getElementById('chatbotContainer');
+        isFullscreen = !isFullscreen;
+
+        if (isFullscreen) {
+            chatbot.classList.add('fullscreen');
+            document.body.style.overflow = 'hidden';
+        } else {
+            chatbot.classList.remove('fullscreen');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function useSamplePrompt(button) {
+        document.getElementById('chatbotInput').value = button.textContent;
+        document.getElementById('chatbotInput').focus();
+    }
+
+    function handleChatInput(event) {
+        if (event.key === 'Enter') {
+            sendChatMessage();
+        }
+    }
+
+    async function queryBackend(prompt) {
+        try {
+            const response = await fetch('/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ prompt: prompt })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error calling backend API:', error);
+            return {
+                success: false,
+                error: error.message || 'Failed to fetch response from the API. Please check your connection or try again later.'
+            };
+        }
+    }
+
+    async function sendChatMessage() {
+        const input = document.getElementById('chatbotInput');
+        const message = input.value.trim();
+        if (message === '') return;
+
+        const messagesContainer = document.getElementById('chatbotMessages');
+
+        // Add user message
+        const userMessage = document.createElement('div');
+        userMessage.className = 'message user';
+        userMessage.innerHTML = `<div class="message-content">${message}</div>`;
+        messagesContainer.appendChild(userMessage);
+
+        // Clear input
+        input.value = '';
+
+        // Show typing indicator
+        const typingIndicator = document.getElementById('typingIndicator');
+        typingIndicator.style.display = 'flex';
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        try {
+            // Get response from backend
+            const result = await queryBackend(message);
+
+            // Hide typing indicator
+            typingIndicator.style.display = 'none';
+
+            // Add bot response
+            const botMessage = document.createElement('div');
+            botMessage.className = 'message bot';
+
+            let responseText;
+            if (result.success) {
+                responseText = result.response || "I received your message but couldn't generate a proper response.";
+            } else {
+                responseText = result.error || "Sorry, I encountered an error processing your request.";
+            }
+
+            botMessage.innerHTML = `<div class="message-content">${responseText}</div>`;
+            messagesContainer.appendChild(botMessage);
+
+        } catch (error) {
+            typingIndicator.style.display = 'none';
+
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'message bot';
+            errorMessage.innerHTML = `<div class="message-content">Sorry, I encountered an error processing your request. Please try again.</div>`;
+            messagesContainer.appendChild(errorMessage);
+
+            console.error('Chat error:', error);
+        }
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function toggleFullscreen() {
+    window.location.href = '/chatbot'; // Navigate to the chatbot page
+}
+
+</script>
+{% endblock %}
