@@ -20,11 +20,11 @@
             <div class="filters-row">
                 <div class="filter-group">
                     <label for="categoryFilter">Category:</label>
-                    <select id="categoryFilter" onchange="updateWeatherFilter()">
+                    <select id="categoryFilter" onchange="updateCategoryFilter()">
                         <option value="">All Categories</option>
-                        {% for category in products|map(attribute='category')|unique|sort %}
-                            <option value="{{ category }}">{{ category }}</option>
-                        {% endfor %}
+                        <option value="DIGITAL" {% if selected_category == 'DIGITAL' %}selected{% endif %}>Digital Products</option>
+                        <option value="GOODS" {% if selected_category == 'GOODS' %}selected{% endif %}>Farming Goods</option>
+                        <option value="SERVICE" {% if selected_category == 'SERVICE' %}selected{% endif %}>Services</option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -53,7 +53,7 @@
             {% for product in products %}
             <div class="product-listing-card" data-category="{{ product.category }}" data-weather="{{ product.suitable_weather }}" data-price="{{ product.price }}">
                 <div class="product-image-container">
-                    <img src="{{ product.image_link }}"class="product-image">
+                    <img src="{{ product.image_link }}" alt="{{ product.product_description_en }}" class="product-image">
                 </div>
                 <div class="product-info">
                     <div class="product-category">{{ product.product_type }}</div>
@@ -100,6 +100,12 @@
                 product.style.display = 'none';
             }
         });
+    }
+
+    function updateCategoryFilter() {
+        const category = document.getElementById('categoryFilter').value;
+        // Update the URL with the selected category
+        window.location.href = `{{ url_for('product_listing') }}?category=${category}`;
     }
 
     function sortProducts() {
@@ -158,30 +164,19 @@
         const category = document.getElementById('categoryFilter').value;
         const weatherFilter = document.getElementById('weatherFilter');
 
-        // Clear existing options
+        // Clear existing weather options
         weatherFilter.innerHTML = '<option value="">All Weather Types</option>';
 
-        if (!category) {
-            // If no category is selected, populate with all weather types
-            const allWeatherTypes = [...new Set(allProducts.map(product => product.suitable_weather))];
-            allWeatherTypes.forEach(weather => {
-                const option = document.createElement('option');
-                option.value = weather;
-                option.textContent = weather;
-                weatherFilter.appendChild(option);
-            });
-        } else {
-            // Filter products by selected category and get unique weather types
-            const filteredProducts = allProducts.filter(product => product.category === category);
-            const weatherTypes = [...new Set(filteredProducts.map(product => product.suitable_weather))];
+        // Always populate with all weather types based on the selected category
+        const filteredProducts = category ? allProducts.filter(product => product.category === category) : allProducts;
+        const weatherTypes = [...new Set(filteredProducts.map(product => product.suitable_weather))];
 
-            weatherTypes.forEach(weather => {
-                const option = document.createElement('option');
-                option.value = weather;
-                option.textContent = weather;
-                weatherFilter.appendChild(option);
-            });
-        }
+        weatherTypes.forEach(weather => {
+            const option = document.createElement('option');
+            option.value = weather;
+            option.textContent = weather;
+            weatherFilter.appendChild(option);
+        });
 
         // Trigger filtering after updating weather options
         filterProducts();
