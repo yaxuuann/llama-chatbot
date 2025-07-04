@@ -20,9 +20,9 @@
                     <a href="{{ url_for('product_listing') }}" {% if request.endpoint == 'product_listing' %}class="active"{% endif %}>Products</a>
                     <div class="dropdown-content">
                         <a href="{{ url_for('product_listing', category='all') }}">All Products</a>
-                        <a href="{{ url_for('product_listing', category='digital') }}">Digital Products</a>
-                        <a href="{{ url_for('product_listing', category='farming') }}">Farming Goods</a>
-                        <a href="{{ url_for('product_listing', category='services') }}">Services</a>
+                        <a href="{{ url_for('product_listing', category='DIGITAL') }}">Digital Products</a>
+                        <a href="{{ url_for('product_listing', category='GOODS') }}">Farming Goods</a>
+                        <a href="{{ url_for('product_listing', category='SERVICE') }}">Services</a>
                     </div>
                 </li>
                 <li><a href="{{ url_for('cart') }}" {% if request.endpoint == 'cart' %}class="active"{% endif %}>Cart</a></li>
