@@ -20,7 +20,7 @@
             <div class="filters-row">
                 <div class="filter-group">
                     <label for="categoryFilter">Category:</label>
-                    <select id="categoryFilter" onchange="filterProducts()">
+                    <select id="categoryFilter" onchange="updateWeatherFilter()">
                         <option value="">All Categories</option>
                         {% for category in products|map(attribute='category')|unique|sort %}
                             <option value="{{ category }}">{{ category }}</option>
@@ -31,9 +31,7 @@
                     <label for="weatherFilter">Weather Type:</label>
                     <select id="weatherFilter" onchange="filterProducts()">
                         <option value="">All Weather Types</option>
-                        {% for weather in products|map(attribute='suitable_weather')|unique|sort %}
-                            <option value="{{ weather }}">{{ weather }}</option>
-                        {% endfor %}
+                        <!-- Weather options will be dynamically updated -->
                     </select>
                 </div>
                 <div class="filter-group">
@@ -55,7 +53,7 @@
             {% for product in products %}
             <div class="product-listing-card" data-category="{{ product.category }}" data-weather="{{ product.suitable_weather }}" data-price="{{ product.price }}">
                 <div class="product-image-container">
-                    <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" class="product-image">
+                    <img src="{{ product.image_link }}"class="product-image">
                 </div>
                 <div class="product-info">
                     <div class="product-category">{{ product.product_type }}</div>
@@ -76,6 +74,10 @@
 
 {% block scripts %}
 <script>
+    let allProducts = {{
+        products | tojson | safe
+    }};
+
     function filterProducts() {
         const category = document.getElementById('categoryFilter').value;
         const weather = document.getElementById('weatherFilter').value;
@@ -151,5 +153,43 @@
             alert('An error occurred while adding the product to the cart');
         });
     }
+
+    function updateWeatherFilter() {
+        const category = document.getElementById('categoryFilter').value;
+        const weatherFilter = document.getElementById('weatherFilter');
+
+        // Clear existing options
+        weatherFilter.innerHTML = '<option value="">All Weather Types</option>';
+
+        if (!category) {
+            // If no category is selected, populate with all weather types
+            const allWeatherTypes = [...new Set(allProducts.map(product => product.suitable_weather))];
+            allWeatherTypes.forEach(weather => {
+                const option = document.createElement('option');
+                option.value = weather;
+                option.textContent = weather;
+                weatherFilter.appendChild(option);
+            });
+        } else {
+            // Filter products by selected category and get unique weather types
+            const filteredProducts = allProducts.filter(product => product.category === category);
+            const weatherTypes = [...new Set(filteredProducts.map(product => product.suitable_weather))];
+
+            weatherTypes.forEach(weather => {
+                const option = document.createElement('option');
+                option.value = weather;
+                option.textContent = weather;
+                weatherFilter.appendChild(option);
+            });
+        }
+
+        // Trigger filtering after updating weather options
+        filterProducts();
+    }
+
+    // Initialize weather filter options on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateWeatherFilter();
+    });
 </script>
 {% endblock %}
