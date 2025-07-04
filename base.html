@@ -14,10 +14,17 @@
                 <img src="{{ url_for('static', filename='PetaniCerdas Logo.jpg') }}" class="logo-icon">
                 PetaniCerdas
             </a>
-
             <ul class="nav-links">
                 <li><a href="{{ url_for('home') }}" {% if request.endpoint == 'home' %}class="active"{% endif %}>Home</a></li>
-                <li><a href="{{ url_for('product_listing') }}" {% if request.endpoint == 'product_listing' %}class="active"{% endif %}>Products</a></li>
+                <li class="dropdown">
+                    <a href="{{ url_for('product_listing') }}" {% if request.endpoint == 'product_listing' %}class="active"{% endif %}>Products</a>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('product_listing', category='all') }}">All Products</a>
+                        <a href="{{ url_for('product_listing', category='digital') }}">Digital Products</a>
+                        <a href="{{ url_for('product_listing', category='farming') }}">Farming Goods</a>
+                        <a href="{{ url_for('product_listing', category='services') }}">Services</a>
+                    </div>
+                </li>
                 <li><a href="{{ url_for('cart') }}" {% if request.endpoint == 'cart' %}class="active"{% endif %}>Cart</a></li>
                 <li><a href="{{ url_for('chatbot') }}#chatbot" {% if 'chatbot' in request.path %}class="active"{% endif %}>PalmPal</a></li>
                 <li><a href="{{ url_for('home') }}#contact" {% if 'contact' in request.path %}class="active"{% endif %}>Contact</a></li>
@@ -25,11 +32,9 @@
             </ul>
         </nav>
     </header>
-
     <main>
         {% block content %}{% endblock %}
     </main>
-
     <footer id="contact">
         <div class="footer-content">
             <div class="footer-links">
@@ -41,7 +46,6 @@
             <p>&copy; 2024 SawitPRO. All rights reserved. | TokoSawit Product Recommendation System</p>
         </div>
     </footer>
-
     {% block scripts %}{% endblock %}
 </body>
 </html>
