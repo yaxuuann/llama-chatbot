@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-import requests
 import pandas as pd
 import os
 
@@ -27,6 +26,16 @@ def load_products_from_csv():
 
 products = load_products_from_csv()
 
+@app.route('/products')
+def product_listing():
+    category = request.args.get('category', 'all')
+    filtered_products = products
+    if category != 'all':
+        filtered_products = [p for p in products if p['category'].upper() == category.upper()]
+
+    return render_template('productlisting.html', products=filtered_products, selected_category=category)
+
+
 @app.route('/')
 def home():
     return render_template('homepage.html')
@@ -52,9 +61,6 @@ def query():
     else:
         return jsonify({"error": "Failed to fetch response from the API."}), response.status_code
 
-@app.route('/products')
-def product_listing():
-    return render_template('productlisting.html', products=products)
 
 @app.route('/product/<product_id>')
 def product_details(product_id):
