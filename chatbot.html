@@ -11,7 +11,7 @@
     <div class="history-panel open" id="historyPanel">
         <div class="history-header">
             <div class="user-profile">
-                <div class="user-icon">👤</div>
+                <div class="user-icon">😀</div>
                 <div class="user-info">
                     <div class="user-name">John Doe</div>
                     <div class="edit-profile">Edit Plantation Data</div>
@@ -53,6 +53,12 @@
                 <span class="palm-icon">🌴</span>
                 <span>PalmPal Assistant</span>
             </div>
+            <button class="close-chat" onclick="window.location.href='/'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
         </div>
 
         <!-- Chat Mode Selector -->
@@ -113,20 +119,8 @@
                     <button class="add-to-cart-btn">Add to Cart</button>
                 </div>
             </div>
-            <!-- Typing Indicator -->
-            <div class="typing-indicator" id="typingIndicator">
-                <div class="message bot">
-                    <div class="message-avatar">🌴</div>
-                    <div class="message-content">
-                        <div class="typing-dots">
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
+
         <!-- Input Area -->
         <div class="input-container">
             <div class="input-wrapper">
@@ -164,7 +158,6 @@
                 item.classList.remove('active');
             });
             element.classList.add('active');
-
             console.log('Selected chat:', element.querySelector('.history-title').textContent);
         }
 
@@ -197,22 +190,7 @@
                 </div>
             `;
 
-            const typingIndicator = document.createElement('div');
-            typingIndicator.className = 'typing-indicator';
-            typingIndicator.id = 'typingIndicator';
-            typingIndicator.innerHTML = `
-                <div class="message bot">
-                    <div class="message-avatar">🌴</div>
-                    <div class="message-content">
-                        <div class="typing-dots">
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            messagesContainer.appendChild(typingIndicator);
+
         }
 
         function setChatMode(mode) {
@@ -256,6 +234,7 @@
 
             const messagesContainer = document.getElementById('messagesContainer');
             const samplePrompts = document.getElementById('samplePrompts');
+
             if (samplePrompts) {
                 samplePrompts.style.display = 'none';
             }
@@ -266,16 +245,10 @@
                 <div class="message-content">
                     <div class="message-text">${message}</div>
                 </div>
-                <div class="message-avatar">👤</div>
             `;
             messagesContainer.appendChild(userMessage);
 
             input.value = '';
-
-            const typingIndicator = document.getElementById('typingIndicator');
-            typingIndicator.style.display = 'flex';
-
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
             setTimeout(() => {
                 const botMessage = document.createElement('div');
@@ -296,7 +269,6 @@
                 `;
 
                 messagesContainer.appendChild(botMessage);
-                typingIndicator.style.display = 'none';
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }, 2000);
         }
