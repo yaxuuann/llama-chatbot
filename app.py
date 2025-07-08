@@ -15,7 +15,7 @@ CORS(app)
 
 # Initialize the Hugging Face Inference client
 # You can set your API key here or use an environment variable
-HUGGINGFACE_API_KEY = os.environ.get("HUGGINGFACE_API_KEY", "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")
+HUGGINGFACE_API_KEY = os.environ.get("HUGGINGFACE_API_KEY", "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")
 llama_client = InferenceClient(api_key=HUGGINGFACE_API_KEY)
 
 # Llama 4 chat completion function (reference: chat_llama.py)
