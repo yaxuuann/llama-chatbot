@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat with PalmPal</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+      .input-row { display: flex; align-items: center; gap: 0.5em; }
+      #recordButton { font-size: 1.1em; }
+      #ttsToggleLabel { margin-left: 1em; font-size: 0.95em; }
+      #status, #ttsStatus { margin: 0.5em 0; }
+      .error { color: red; }
+      .success { color: green; }
+    </style>
 </head>
 <body>
     <!-- History Panel -->
@@ -50,7 +58,8 @@
                 </svg>
             </button>
             <div class="chat-title">
-                <span class="palm-icon">🌴</span>
+                <img src="{{ url_for('static', filename='images/PalmpalLogo.png') }}" class="logo-icon">
+                </span>
                 <span>PalmPal Assistant</span>
             </div>
             <button class="close-chat" onclick="window.location.href='/'">
@@ -123,155 +132,267 @@
 
         <!-- Input Area -->
         <div class="input-container">
-            <div class="input-wrapper">
-                <input type="text" id="messageInput" placeholder="Ask about palm plantation..." onkeypress="handleKeyPress(event)">
-                <button class="send-btn" onclick="sendMessage()" id="sendBtn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="22" y1="2" x2="11" y2="13"></line>
-                        <polyline points="22,2 15,22 11,13 2,9 22,2"></polyline>
-                    </svg>
-                </button>
-            </div>
+          <div class="input-row">
+            <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+            <button id="sendBtn">Send</button>
+            <button id="recordButton">🎤</button>
+            <label id="ttsToggleLabel">
+              <input type="checkbox" id="ttsToggle" checked> TTS
+            </label>
+          </div>
+          <span id="status">Status: Ready</span>
+          <span id="ttsStatus"></span>
         </div>
     </div>
 
     <script>
-        let currentChatMode = 'general';
-        let isHistoryPanelOpen = true;
+      let currentChatMode = 'general';
+      let isHistoryPanelOpen = true;
+      let isRecording = false;
+      let mediaRecorder;
+      let audioChunks = [];
+      let ttsEnabled = true;
 
-        function toggleHistoryPanel() {
-            const historyPanel = document.getElementById('historyPanel');
-            const chatContainer = document.getElementById('chatContainer');
+      function toggleHistoryPanel() {
+        const historyPanel = document.getElementById('historyPanel');
+        const chatContainer = document.getElementById('chatContainer');
 
-            if (isHistoryPanelOpen) {
-                historyPanel.classList.remove('open');
-                chatContainer.classList.remove('shifted');
-            } else {
-                historyPanel.classList.add('open');
-                chatContainer.classList.add('shifted');
-            }
-            isHistoryPanelOpen = !isHistoryPanelOpen;
+        if (isHistoryPanelOpen) {
+          historyPanel.classList.remove('open');
+          chatContainer.classList.remove('shifted');
+        } else {
+          historyPanel.classList.add('open');
+          chatContainer.classList.add('shifted');
         }
+        isHistoryPanelOpen = !isHistoryPanelOpen;
+      }
 
-        function selectChat(element) {
-            document.querySelectorAll('.history-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            element.classList.add('active');
-            console.log('Selected chat:', element.querySelector('.history-title').textContent);
-        }
+      function selectChat(element) {
+        document.querySelectorAll('.history-item').forEach(item => {
+          item.classList.remove('active');
+        });
+        element.classList.add('active');
+        console.log('Selected chat:', element.querySelector('.history-title').textContent);
+      }
 
-        function startNewChat() {
-            const messagesContainer = document.getElementById('messagesContainer');
-            messagesContainer.innerHTML = `
-                <div class="welcome-message">
-                    <div class="message bot">
-                        <div class="message-avatar">🌴</div>
-                        <div class="message-content">
-                            <div class="message-text">
-                                Hello! I'm your AI palm plantation assistant, PalmPal. How can I help you with your plantation today?
-                            </div>
-                        </div>
-                    </div>
+      function startNewChat() {
+        const messagesContainer = document.getElementById('messagesContainer');
+        messagesContainer.innerHTML = `
+          <div class="welcome-message">
+            <div class="message bot">
+              <div class="message-avatar">🌴</div>
+              <div class="message-content">
+                <div class="message-text">
+                  Hello! I'm your AI palm plantation assistant, PalmPal. How can I help you with your plantation today?
                 </div>
-                <div class="sample-prompts" id="samplePrompts">
-                    <div class="sample-prompt" onclick="useSamplePrompt(this)">
-                        What's the best fertilizer for mature palm trees?
-                    </div>
-                    <div class="sample-prompt" onclick="useSamplePrompt(this)">
-                        How to control pest infestations?
-                    </div>
-                    <div class="sample-prompt" onclick="useSamplePrompt(this)">
-                        Recommend products for soil improvement
-                    </div>
-                    <div class="sample-prompt" onclick="useSamplePrompt(this)">
-                        Best harvesting practices for maximum yield
-                    </div>
-                </div>
-            `;
+              </div>
+            </div>
+          </div>
+          <div class="sample-prompts" id="samplePrompts">
+            <div class="sample-prompt" onclick="useSamplePrompt(this)">
+              What's the best fertilizer for mature palm trees?
+            </div>
+            <div class="sample-prompt" onclick="useSamplePrompt(this)">
+              How to control pest infestations?
+            </div>
+            <div class="sample-prompt" onclick="useSamplePrompt(this)">
+              Recommend products for soil improvement
+            </div>
+            <div class="sample-prompt" onclick="useSamplePrompt(this)">
+              Best harvesting practices for maximum yield
+            </div>
+          </div>
+        `;
+      }
 
+      function setChatMode(mode) {
+        currentChatMode = mode;
 
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+
+        const productRecommendations = document.getElementById('productRecommendations');
+        const samplePrompts = document.getElementById('samplePrompts');
+
+        if (mode === 'recommendations') {
+          productRecommendations.style.display = 'block';
+          samplePrompts.style.display = 'none';
+        } else {
+          productRecommendations.style.display = 'none';
+          samplePrompts.style.display = 'flex';
         }
+      }
 
-        function setChatMode(mode) {
-            currentChatMode = mode;
+      function useSamplePrompt(element) {
+        const input = document.getElementById('messageInput');
+        input.value = element.textContent.trim();
+        input.focus();
+        sendMessage();
+      }
 
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+      const messagesContainer = document.getElementById('messagesContainer');
+      const messageInput = document.getElementById('messageInput');
+      const sendBtn = document.getElementById('sendBtn');
+      const recordButton = document.getElementById('recordButton');
+      const statusSpan = document.getElementById('status');
+      const ttsStatus = document.getElementById('ttsStatus');
+      const ttsToggle = document.getElementById('ttsToggle');
 
-            const productRecommendations = document.getElementById('productRecommendations');
-            const samplePrompts = document.getElementById('samplePrompts');
+      ttsToggle.addEventListener('change', function() {
+        ttsEnabled = this.checked;
+      });
 
-            if (mode === 'recommendations') {
-                productRecommendations.style.display = 'block';
-                samplePrompts.style.display = 'none';
-            } else {
-                productRecommendations.style.display = 'none';
-                samplePrompts.style.display = 'flex';
+      // Send text message
+      sendBtn.onclick = async function() {
+        const text = messageInput.value.trim();
+        if (!text) return;
+        addMessage('user', text);
+        messageInput.value = '';
+        await getBotReply(text);
+      };
+
+      // Enter key support
+      messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendBtn.click();
+      });
+
+      // Record speech
+      recordButton.onclick = async function() {
+        if (isRecording) {
+          mediaRecorder.stop();
+          return;
+        }
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+          mediaRecorder.onstop = processAudio;
+          mediaRecorder.start();
+          isRecording = true;
+          recordButton.textContent = '⏹️';
+          statusSpan.textContent = 'Status: Recording...';
+          statusSpan.className = '';
+        } catch (e) {
+          statusSpan.textContent = 'Status: Error - ' + e.message;
+          statusSpan.className = 'error';
+        }
+      };
+
+      async function processAudio() {
+        isRecording = false;
+        recordButton.textContent = '🎤';
+        statusSpan.textContent = 'Status: Processing speech...';
+        statusSpan.className = '';
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        try {
+          const arrayBuffer = await audioBlob.arrayBuffer();
+          const sttResponse = await fetch(
+            'https://api-inference.huggingface.co/models/openai/whisper-large-v3',
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Bearer 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',
+                'Content-Type': 'audio/wav'
+              },
+              body: arrayBuffer
             }
+          );
+          if (!sttResponse.ok) {
+            throw new Error(`STT API error: ${sttResponse.status}`);
+          }
+          const sttResult = await sttResponse.json();
+          const transcript = sttResult.text || 'No speech detected';
+          statusSpan.textContent = 'Status: Sending to PalmPal...';
+          statusSpan.className = '';
+          addMessage('user', transcript);
+          if (transcript && transcript !== 'No speech detected') {
+            await getBotReply(transcript);
+          }
+          statusSpan.textContent = 'Status: Ready';
+          statusSpan.className = 'success';
+        } catch (e) {
+          statusSpan.textContent = 'Status: Error - ' + e.message;
+          statusSpan.className = 'error';
         }
+      }
 
-        function useSamplePrompt(element) {
-            const input = document.getElementById('messageInput');
-            input.value = element.textContent.trim();
-            input.focus();
-            sendMessage();
+      // Add message to chat
+      function addMessage(role, text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message ' + role;
+        msgDiv.innerHTML = `
+          <div class="message-avatar">${role === 'user' ? '🧑' : '🌴'}</div>
+          <div class="message-content">
+            <div class="message-text">${text}</div>
+          </div>
+        `;
+        messagesContainer.appendChild(msgDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      // Get bot reply from Flask Llama API
+      async function getBotReply(prompt) {
+        addMessage('bot', '...');
+        statusSpan.textContent = 'Status: PalmPal is thinking...';
+        statusSpan.className = '';
+        try {
+          const response = await fetch('/query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
+          });
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          const result = await response.json();
+          let reply = '';
+          if (Array.isArray(result) && result.length > 0) {
+            reply = result[0].generated_text || result[0].text || 'No response';
+          } else if (result.generated_text) {
+            reply = result.generated_text;
+          } else if (result.text) {
+            reply = result.text;
+          } else {
+            reply = 'No response received';
+          }
+          // Replace last bot message with real reply
+          const botMsgs = messagesContainer.querySelectorAll('.message.bot');
+          if (botMsgs.length > 0) {
+            botMsgs[botMsgs.length - 1].querySelector('.message-text').textContent = reply;
+          }
+          statusSpan.textContent = 'Status: Ready';
+          statusSpan.className = 'success';
+          // TTS if enabled
+          if (ttsEnabled && reply) {
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(reply);
+            utter.rate = 0.95;
+            utter.pitch = 1.0;
+            utter.volume = 0.9;
+            ttsStatus.textContent = 'Speaking...';
+            utter.onend = () => {
+              ttsStatus.textContent = 'Done speaking.';
+              ttsStatus.className = 'success';
+            };
+            utter.onerror = (e) => {
+              ttsStatus.textContent = 'TTS Error: ' + e.error;
+              ttsStatus.className = 'error';
+            };
+            window.speechSynthesis.speak(utter);
+          } else {
+            ttsStatus.textContent = '';
+          }
+        } catch (e) {
+          statusSpan.textContent = 'Status: Error - ' + e.message;
+          statusSpan.className = 'error';
+          // Replace last bot message with error
+          const botMsgs = messagesContainer.querySelectorAll('.message.bot');
+          if (botMsgs.length > 0) {
+            botMsgs[botMsgs.length - 1].querySelector('.message-text').textContent = 'Error: ' + e.message;
+          }
         }
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-
-            if (message === '') return;
-
-            const messagesContainer = document.getElementById('messagesContainer');
-            const samplePrompts = document.getElementById('samplePrompts');
-
-            if (samplePrompts) {
-                samplePrompts.style.display = 'none';
-            }
-
-            const userMessage = document.createElement('div');
-            userMessage.className = 'message user';
-            userMessage.innerHTML = `
-                <div class="message-content">
-                    <div class="message-text">${message}</div>
-                </div>
-            `;
-            messagesContainer.appendChild(userMessage);
-
-            input.value = '';
-
-            setTimeout(() => {
-                const botMessage = document.createElement('div');
-                botMessage.className = 'message bot';
-
-                let responseText = '';
-                if (currentChatMode === 'recommendations') {
-                    responseText = "Based on your plantation data, I recommend these products for optimal growth. Check out the recommendations above!";
-                } else {
-                    responseText = "Thank you for your question! I'm here to help with any queries about palm plantation, farming techniques, and plant care.";
-                }
-
-                botMessage.innerHTML = `
-                    <div class="message-avatar">🌴</div>
-                    <div class="message-content">
-                        <div class="message-text">${responseText}</div>
-                    </div>
-                `;
-
-                messagesContainer.appendChild(botMessage);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 2000);
-        }
+      }
     </script>
 </body>
 </html>
